@@ -1,0 +1,9 @@
+# Exclue all python compiled files 'pyc'
+*.pyc
+*.log
+*.dat
+*.png
+*.metadata
+*.project
+*.pydevproject
+*~
