@@ -1,74 +1,51 @@
 #!/usr/bin/env python
 
 from flask import Flask, jsonify, abort, make_response, request
+from proto.ip_event_pb2 import IpEvent
+from netaddr import IPAddress
 
 app = Flask(__name__)
 
-from proto.ip_event_pb2 import IpEvent
-
-#{"sha_id":1,"count":12,"good_ips":2,"bad_ips":1}
-
-events = {}
-events['1'] = {'count':0,'good_ips':2,'bad_ips':1}
-#events = [
-#    {
-#        'sha_id': 1,
-#        'count': 12,
-#        'good_ips': 2,
-#        'bad_ips': 1
-#    }
-#]
+app_shas = {}
+app_shas['123fff'] = {'count':0,'good_ips':2,'bad_ips':1}
 
 @app.route('/events', methods=['GET'])
 def get_events():
-    return jsonify({'events': events})
+    return jsonify(app_shas)
 
-@app.route('/events/<int:sha_id>', methods=['GET'])
+@app.route('/events/<sha_id>', methods=['GET'])
 def get_event(sha_id):
-    sha = [sha for sha in events if sha['sha_id'] == sha_id]
-    if len(sha) == 0:
+    if 'application/json' in request.headers['Accept']:
+        try:
+            app_shas[sha_id]
+        except KeyError:
+            abort(404)
+        else:
+            return jsonify(app_shas[sha_id])
+    else:
         abort(404)
-    return jsonify(sha[0])
 
 @app.route('/events', methods=['POST'])
 def create_event():
-    #print 'Content-Type: %s' % request.headers['Content-Type']
-
-    #if 'application/json' in request.headers['Content-Type']:
-    #    event = {
-    #        'sha_id': request.json['sha_id'],
-    #        'count': request.json['count'],
-    #        'good_ips': request.json['good_ips'],
-    #        'bad_ips': request.json['bad_ips']
-    #    }
-    #    events.append(event)
-    #    return jsonify({'event': event}), 201
-    #else:
-    #    abort(400)
-
     if 'application/octet-stream' in request.headers['Content-Type']:
-        print 'data: %s' % request.data
-        print 'form: %s' % request.form
-        print 'values: %s' % request.values
-        print 'files: %s' % request.files
                 
-        new_event = IpEvent()
-        new_event.ParseFromString(request.data)
-        print 'type: %s' % type(new_event)
-        print 'new_event: %s' % new_event
+        event = IpEvent()
+        event.ParseFromString(request.data)
+        sha_id = str(event.app_sha256)
+        ip = str(IPAddress(event.ip))
+        
+        if sha_id in app_shas:
+            app_shas[sha_id]['count'] = app_shas[sha_id]['count'] + 1
+        else:
+            app_shas[sha_id]={'count':1,'good_ips':0,'bad_ips':0}
+            print app_shas
+        
         return 'figure out how to use proto'
-        #event = {
-        #    'sha_id': request.json['sha_id'],
-        #    'count': request.json['count'],
-        #    'good_ips': request.json['good_ips'],
-        #    'bad_ips': request.json['bad_ips']
-        #}
-        #events.append(event)
         #return jsonify({'event': event}), 201
     else:
         abort(400)
 
-@app.route('/events/<int:sha_id>', methods=['DELETE'])
+@app.route('/events/<sha_id>', methods=['DELETE'])
 def delete_task(sha_id):
     sha = [sha for sha in events if sha['sha_id'] == sha_id]
     if len(sha) == 0:

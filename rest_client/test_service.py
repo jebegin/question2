@@ -13,32 +13,31 @@ def main(argv):
     ip = IPNetwork('192.168.1.1/28')
     
     event = IpEvent()
-    event.app_sha256='abcdefghijkl'
+    event.app_sha256='123fff'
     event.ip=ip.value
     
     print 'event: %s' % event
     
-    #r = requests.get('http://localhost:5000/events')
-    #print 'url: ' + r.url
-    #print 'status: %s' % r.status_code
-    #print 'headers: %s' % r.headers
-    #print 'text: %s' % r.text
-    #print 'json response: %s' % r.json()
-    #
-    #print
-    #
-    #r = requests.get('http://localhost:5000/events/1')
-    #print 'url: ' + r.url
-    #print 'status: %s' % r.status_code
-    #print 'headers: %s' % r.headers
-    #print 'text: %s' % r.text
-    #print 'json response: %s' % r.json()
-    #
-    #print
-
-    headers = {"Content-Type":"application/octet-stream"}
-    data = json.dumps({"sha_id":5,"count":12,"good_ips":2,"bad_ips":1})
+    r = requests.get('http://localhost:5000/events')
+    print 'url: ' + r.url
+    print 'status: %s' % r.status_code
+    print 'headers: %s' % r.headers
+    print 'text: %s' % r.text
+    print 'json response: %s' % r.json()
     
+    print
+    
+    headers = {'Accept':'application/json'}
+    r = requests.get('http://localhost:5000/events/123fff', headers=headers)
+    print 'url: ' + r.url
+    print 'status: %s' % r.status_code
+    print 'headers: %s' % r.headers
+    print 'text: %s' % r.text
+    print 'json response: %s' % r.json()
+    
+    print
+
+    headers = {"Content-Type":"application/octet-stream"}    
     r = requests.post('http://localhost:5000/events', headers=headers, data=event.SerializeToString())
     print 'url: ' + r.url
     print 'status: %s' % r.status_code
@@ -47,6 +46,16 @@ def main(argv):
         print 'text: %s' % r.text
         #print 'json response: %s' % r.json()
 
+    print
+
+    headers = {'Accept':'application/json'}
+    r = requests.get('http://localhost:5000/events/123fff', headers=headers)
+    print 'url: ' + r.url
+    print 'status: %s' % r.status_code
+    print 'headers: %s' % r.headers
+    print 'text: %s' % r.text
+    print 'json response: %s' % r.json()
+    
     print
 
     #r = requests.delete('http://localhost:5000/events/5')
