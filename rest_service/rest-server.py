@@ -7,7 +7,6 @@ from netaddr import IPAddress
 app = Flask(__name__)
 
 app_shas = {}
-app_shas['123fff'] = {'count':0,'good_ips':2,'bad_ips':1}
 
 @app.route('/events', methods=['GET'])
 def get_events():
@@ -37,21 +36,26 @@ def create_event():
         if sha_id in app_shas:
             app_shas[sha_id]['count'] = app_shas[sha_id]['count'] + 1
         else:
-            app_shas[sha_id]={'count':1,'good_ips':0,'bad_ips':0}
-            print app_shas
+            app_shas[sha_id]={'count':1,'good_ips':[],'bad_ips':[]}
         
-        return 'figure out how to use proto'
-        #return jsonify({'event': event}), 201
+        return 'Received event...'
     else:
         abort(400)
 
-@app.route('/events/<sha_id>', methods=['DELETE'])
-def delete_task(sha_id):
-    sha = [sha for sha in events if sha['sha_id'] == sha_id]
-    if len(sha) == 0:
-        abort(404)
-    events.remove(sha[0])
+@app.route('/events', methods=['DELETE'])
+def delete_events():
+
+    app_shas.clear()    
     return jsonify({'result': True})
+
+@app.route('/events/<sha_id>', methods=['DELETE'])
+def delete_event(sha_id):
+    try:
+        del app_shas[sha_id]
+    except KeyError:
+        abort(404)
+    else:
+        return jsonify({'result': True})
 
 @app.errorhandler(404)
 def not_found(error):
