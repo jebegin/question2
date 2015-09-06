@@ -2,7 +2,7 @@
 
 from flask import Flask, jsonify, abort, make_response, request
 from proto.ip_event_pb2 import IpEvent
-from netaddr import IPAddress
+from netaddr import IPAddress, IPSet
 
 app = Flask(__name__)
 
@@ -27,7 +27,7 @@ def get_event(sha_id):
 @app.route('/events', methods=['POST'])
 def create_event():
     if 'application/octet-stream' in request.headers['Content-Type']:
-                
+
         event = IpEvent()
         event.ParseFromString(request.data)
         sha_id = str(event.app_sha256)
@@ -35,8 +35,22 @@ def create_event():
         
         if sha_id in app_shas:
             app_shas[sha_id]['count'] = app_shas[sha_id]['count'] + 1
+            app_shas[sha_id]['good_ips'].append(ip)
         else:
             app_shas[sha_id]={'count':1,'good_ips':[],'bad_ips':[]}
+            app_shas[sha_id]['good_ips'].append(ip)
+        
+        ips = app_shas[sha_id]['good_ips'] + app_shas[sha_id]['bad_ips']
+        ip_set = IPSet(ips)
+        for ip_range in ip_set.iter_ipranges():
+            print ip_range
+            print ip_range.size
+            if ip_range.size == 14:
+                good_range = ip_range
+        
+        for ip in good_range:
+            print ip, ip in ip_set
+        
         
         return 'Received event...'
     else:
