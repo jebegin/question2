@@ -16,3 +16,7 @@ Set your PYTHONPATH to the directroy one above the installation.  If this projec
 
 $ rest_service/rest-server.py
 
+# Notes
+
+The test_service module found in rest_client does some rudimentary testing of the REST server.
+
